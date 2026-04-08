@@ -37,12 +37,15 @@ export default function Home() {
   }, [docs, selectedId]);
 
   useEffect(() => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
     const loadList = async () => {
       setIsLoadingList(true);
       setStatus(null);
 
       try {
-        const res = await fetch(`/api/docs?t=${Date.now()}`);
+        const res = await fetch(`/api/docs?t=${Date.now()}`, { signal: controller.signal });
         if (!res.ok) {
           throw new Error("一覧の読み込みに失敗しました。");
         }
@@ -54,19 +57,22 @@ export default function Home() {
           setSelectedId(items[0].id);
         }
       } catch (error) {
-        setStatus({
-          type: "error",
-          message:
-            error instanceof Error
-              ? error.message
-              : "一覧の読み込み中にエラーが発生しました。"
-        });
+        if (error instanceof Error && error.name === "AbortError") {
+          setStatus({ type: "error", message: "読み込みがタイムアウトしました。再読み込みしてください。" });
+        } else {
+          setStatus({
+            type: "error",
+            message: error instanceof Error ? error.message : "一覧の読み込み中にエラーが発生しました。"
+          });
+        }
       } finally {
+        clearTimeout(timeoutId);
         setIsLoadingList(false);
       }
     };
 
     void loadList();
+    return () => { clearTimeout(timeoutId); controller.abort(); };
   }, []);
 
   useEffect(() => {
@@ -74,12 +80,15 @@ export default function Home() {
       return;
     }
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
     const loadDoc = async () => {
       setIsLoadingDoc(true);
       setStatus(null);
 
       try {
-        const res = await fetch(`/api/docs/${encodeURIComponent(selectedId)}?t=${Date.now()}`);
+        const res = await fetch(`/api/docs/${encodeURIComponent(selectedId)}?t=${Date.now()}`, { signal: controller.signal });
         if (!res.ok) {
           throw new Error("詳細の読み込みに失敗しました。");
         }
@@ -88,19 +97,22 @@ export default function Home() {
         setTitle(doc.title);
         setEditorText(JSON.stringify(doc.body, null, 2));
       } catch (error) {
-        setStatus({
-          type: "error",
-          message:
-            error instanceof Error
-              ? error.message
-              : "詳細の読み込み中にエラーが発生しました。"
-        });
+        if (error instanceof Error && error.name === "AbortError") {
+          setStatus({ type: "error", message: "読み込みがタイムアウトしました。再読み込みしてください。" });
+        } else {
+          setStatus({
+            type: "error",
+            message: error instanceof Error ? error.message : "詳細の読み込み中にエラーが発生しました。"
+          });
+        }
       } finally {
+        clearTimeout(timeoutId);
         setIsLoadingDoc(false);
       }
     };
 
     void loadDoc();
+    return () => { clearTimeout(timeoutId); controller.abort(); };
   }, [selectedId]);
 
   const handleSave = async (withDownload: boolean) => {
