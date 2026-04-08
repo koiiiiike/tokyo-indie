@@ -6,7 +6,7 @@ const docKey = (id: string) => `json_editor:doc:${id}`;
 
 type DocHash = {
   title: string;
-  body: string;
+  body: unknown; // @upstash/redis が hgetall で JSON を自動デシリアライズするため unknown
   updatedAt: string;
 };
 
@@ -44,10 +44,16 @@ export const redisDocRepository: DocRepository = {
     const hash = await redis.hgetall<DocHash>(docKey(id));
     if (!hash) return null;
 
+    // @upstash/redis は hgetall で JSON 文字列を自動デシリアライズするため
+    // body はすでにオブジェクトになっている場合がある
+    const body = typeof hash.body === "string"
+      ? JSON.parse(hash.body) as unknown
+      : hash.body;
+
     return {
       id,
       title: hash.title,
-      body: JSON.parse(hash.body) as unknown,
+      body,
       updatedAt: hash.updatedAt
     };
   },
