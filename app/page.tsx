@@ -20,7 +20,6 @@ type StatusType = "info" | "success" | "error";
 export default function Home() {
   const [docs, setDocs] = useState<JsonDocListItem[]>([]);
   const [selectedId, setSelectedId] = useState("");
-  // TODO(HO-006): タイトル編集を許可する場合は input を追加し、保存前バリデーションを入れる。
   const [title, setTitle] = useState("");
   const [editorText, setEditorText] = useState("");
   const [status, setStatus] = useState<{ type: StatusType; message: string } | null>(
@@ -177,7 +176,7 @@ export default function Home() {
       <section className="editor-shell">
         <header className="editor-header">
           <h1>JSON Editor</h1>
-          <p>モックデータを編集して保存できます。</p>
+          <p>JSONファイルを編集できます。</p>
         </header>
 
         <div className="form-row">
