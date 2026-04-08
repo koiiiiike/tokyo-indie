@@ -42,7 +42,7 @@ export default function Home() {
       setStatus(null);
 
       try {
-        const res = await fetch("/api/docs", { cache: "no-store" });
+        const res = await fetch(`/api/docs?t=${Date.now()}`);
         if (!res.ok) {
           throw new Error("一覧の読み込みに失敗しました。");
         }
@@ -79,9 +79,7 @@ export default function Home() {
       setStatus(null);
 
       try {
-        const res = await fetch(`/api/docs/${encodeURIComponent(selectedId)}`, {
-          cache: "no-store"
-        });
+        const res = await fetch(`/api/docs/${encodeURIComponent(selectedId)}?t=${Date.now()}`);
         if (!res.ok) {
           throw new Error("詳細の読み込みに失敗しました。");
         }
